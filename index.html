@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Youssef's Clock — Precision Time &amp; Prayer Times</title>
+  
+  <!-- Meta tags for SEO & PWA feel -->
+  <meta name="description" content="A futuristic single-page digital clock and accurate prayer times tracker featuring real-time updates, geolocation, and a glassmorphic aesthetic." />
+  <meta name="theme-color" content="#060b18" />
+
+  <!-- Google Fonts: Futuristic & Modern Sans-serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ambient Animated Glowing Background Elements -->
+  <div class="ambient-background" aria-hidden="true">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="grid-overlay"></div>
+    <div class="stars-container" id="starsContainer"></div>
+  </div>
+
+  <!-- Main Application Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Navigation / Status Header -->
+    <header class="app-header">
+      <!-- Location Selector Trigger Button -->
+      <button id="locationBtn" class="glass-pill-btn location-badge" title="Change Location" aria-label="Change Location">
+        <span class="pulse-dot"></span>
+        <svg class="icon-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span id="locationText" class="location-label">Doha, Qatar</span>
+        <svg class="chevron-svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <!-- Quick Action Controls -->
+      <div class="header-controls">
+        <!-- 12H / 24H Toggle -->
+        <button id="formatToggleBtn" class="control-icon-btn" title="Toggle 12H / 24H Format" aria-label="Toggle 12H / 24H Format">
+          <span class="format-badge" id="formatBadge">24H</span>
+        </button>
+
+        <!-- Sound / Adhan Chime Toggle -->
+        <button id="soundToggleBtn" class="control-icon-btn" title="Toggle Prayer Alert Chime" aria-label="Toggle Prayer Alert Chime">
+          <svg id="soundIconOn" class="icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg id="soundIconOff" class="icon-svg hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <!-- Qibla Compass Modal Button -->
+        <button id="qiblaBtn" class="control-icon-btn" title="Qibla Direction Compass" aria-label="Qibla Direction Compass">
+          <svg class="icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+        </button>
+
+        <!-- Language Switcher (EN / AR) -->
+        <button id="langToggleBtn" class="control-icon-btn lang-btn" title="Switch Language / تغيير اللغة" aria-label="Switch Language">
+          <span id="langText">العربية</span>
+        </button>
+
+        <!-- Refresh / Sync Button -->
+        <button id="refreshBtn" class="control-icon-btn" title="Refresh Prayer Times" aria-label="Refresh Prayer Times">
+          <svg class="icon-svg refresh-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="main-content">
+      
+      <!-- Top Section: Current Date Display (YYYY-MM-DD) -->
+      <section class="date-section">
+        <div class="date-pill">
+          <div class="date-pill-glow"></div>
+          <svg class="icon-svg calendar-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span id="currentDateFormatted" class="date-main">2026-09-07</span>
+          <span class="date-separator">•</span>
+          <span id="currentDayName" class="date-sub">Monday</span>
+        </div>
+        
+        <!-- Hijri Date & Lunar phase subtitle -->
+        <div class="hijri-date-badge" id="hijriDateDisplay">
+          <svg class="icon-svg moon-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span id="hijriDateText">Loading Hijri date...</span>
+        </div>
+      </section>
+
+      <!-- Center Hero: Live Digital Clock & Title -->
+      <section class="hero-clock-section">
+        
+        <!-- Live Digital Clock Digits (HH:MM:SS) -->
+        <div class="digital-clock-wrapper">
+          <div class="clock-display" id="clockDisplay" aria-live="polite">
+            <!-- Hours -->
+            <div class="digit-box" id="hoursBox">
+              <span class="digit-value" id="clockHours">12</span>
+            </div>
+            
+            <!-- Flashing Colon -->
+            <span class="clock-colon">:</span>
+            
+            <!-- Minutes -->
+            <div class="digit-box" id="minutesBox">
+              <span class="digit-value" id="clockMinutes">00</span>
+            </div>
+            
+            <!-- Flashing Colon -->
+            <span class="clock-colon">:</span>
+            
+            <!-- Seconds -->
+            <div class="digit-box digit-box-seconds" id="secondsBox">
+              <span class="digit-value" id="clockSeconds">00</span>
+            </div>
+
+            <!-- AM / PM Indicator (visible in 12h mode) -->
+            <div class="ampm-indicator" id="ampmIndicator">
+              <span class="ampm-text" id="ampmText">AM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glowing Horizontal Light Bar -->
+        <div class="glowing-light-bar-container">
+          <div class="light-bar-core"></div>
+          <div class="light-bar-glow"></div>
+          <div class="light-bar-flare"></div>
+        </div>
+
+        <!-- Sleek App Title -->
+        <div class="branding-header">
+          <h1 class="brand-title">YOUSSEF'S CLOCK</h1>
+          <p class="brand-subtitle" id="brandSubtitle">PRECISION TIME &amp; PRAYER SCHEDULE</p>
+        </div>
+
+        <!-- Next Prayer Countdown Banner -->
+        <div class="next-prayer-banner" id="nextPrayerBanner">
+          <div class="banner-inner">
+            <span class="banner-badge">
+              <span class="pulse-beacon"></span>
+              <span id="nextPrayerBadgeLabel">NEXT PRAYER</span>
+            </span>
+            <span class="banner-prayer-name" id="nextPrayerNameBanner">Maghrib</span>
+            <span class="banner-countdown" id="nextPrayerCountdown">in --:--:--</span>
+          </div>
+          <!-- Progress bar for prayer interval -->
+          <div class="prayer-progress-track">
+            <div class="prayer-progress-bar" id="prayerProgressBar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Lower Section: Glassmorphic Prayer Times Table / Cards -->
+      <section class="prayer-times-section">
+        <div class="glass-card prayer-card-container">
+          
+          <div class="card-header">
+            <div class="header-left">
+              <div class="section-title-wrap">
+                <svg class="icon-svg header-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <h2 class="section-title" id="prayerTimesTitle">Today's Prayer Schedule</h2>
+              </div>
+              <span class="calculation-method-badge" id="calcMethodBadge">Umm Al-Qura University</span>
+            </div>
+            
+            <div class="header-right">
+              <span class="timezone-info" id="timezoneInfo">UTC+03:00</span>
+            </div>
+          </div>
+
+          <!-- Prayer Times Grid -->
+          <div class="prayers-grid" id="prayersGrid">
+            
+            <!-- Fajr -->
+            <div class="prayer-item" id="prayer-Fajr" data-prayer="Fajr">
+              <div class="prayer-glow-border"></div>
+              <div class="prayer-badge-indicator" id="badge-Fajr">NEXT</div>
+              <div class="prayer-icon-wrapper fajr-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v4M4.93 10.93l2.83 2.83M2 18h20M20 18a8 8 0 0 0-16 0"></path>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <span class="prayer-name" data-en="Fajr" data-ar="الفجر">Fajr</span>
+                <span class="prayer-arabic-sub">الفجر</span>
+              </div>
+              <div class="prayer-time-wrap">
+                <span class="prayer-time" id="time-Fajr">04:15</span>
+                <span class="prayer-time-ampm" id="ampm-Fajr">AM</span>
+              </div>
+            </div>
+
+            <!-- Sunrise -->
+            <div class="prayer-item prayer-item-secondary" id="prayer-Sunrise" data-prayer="Sunrise">
+              <div class="prayer-glow-border"></div>
+              <div class="prayer-badge-indicator" id="badge-Sunrise">NEXT</div>
+              <div class="prayer-icon-wrapper sunrise-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 18a5 5 0 0 0-10 0"></path>
+                  <line x1="12" y1="2" x2="12" y2="9"></line>
+                  <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                  <line x1="1" y1="18" x2="3" y2="18"></line>
+                  <line x1="21" y1="18" x2="23" y2="18"></line>
+                  <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                  <line x1="23" y1="22" x2="1" y2="22"></line>
+                  <polyline points="8 6 12 2 16 6"></polyline>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <span class="prayer-name" data-en="Sunrise" data-ar="الشروق">Sunrise</span>
+                <span class="prayer-arabic-sub">الشروق</span>
+              </div>
+              <div class="prayer-time-wrap">
+                <span class="prayer-time" id="time-Sunrise">05:32</span>
+                <span class="prayer-time-ampm" id="ampm-Sunrise">AM</span>
+              </div>
+            </div>
+
+            <!-- Dhuhr -->
+            <div class="prayer-item" id="prayer-Dhuhr" data-prayer="Dhuhr">
+              <div class="prayer-glow-border"></div>
+              <div class="prayer-badge-indicator" id="badge-Dhuhr">NEXT</div>
+              <div class="prayer-icon-wrapper dhuhr-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <span class="prayer-name" data-en="Dhuhr" data-ar="الظهر">Dhuhr</span>
+                <span class="prayer-arabic-sub">الظهر</span>
+              </div>
+              <div class="prayer-time-wrap">
+                <span class="prayer-time" id="time-Dhuhr">11:38</span>
+                <span class="prayer-time-ampm" id="ampm-Dhuhr">AM</span>
+              </div>
+            </div>
+
+            <!-- Asr -->
+            <div class="prayer-item" id="prayer-Asr" data-prayer="Asr">
+              <div class="prayer-glow-border"></div>
+              <div class="prayer-badge-indicator" id="badge-Asr">NEXT</div>
+              <div class="prayer-icon-wrapper asr-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path d="M12 2v2"></path>
+                  <path d="M12 20v2"></path>
+                  <path d="m4.93 4.93 1.41 1.41"></path>
+                  <path d="m17.66 17.66 1.41 1.41"></path>
+                  <path d="M2 12h2"></path>
+                  <path d="M20 12h2"></path>
+                  <path d="m6.34 17.66-1.41 1.41"></path>
+                  <path d="m19.07 4.93-1.41 1.41"></path>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <span class="prayer-name" data-en="Asr" data-ar="العصر">Asr</span>
+                <span class="prayer-arabic-sub">العصر</span>
+              </div>
+              <div class="prayer-time-wrap">
+                <span class="prayer-time" id="time-Asr">15:05</span>
+                <span class="prayer-time-ampm" id="ampm-Asr">PM</span>
+              </div>
+            </div>
+
+            <!-- Maghrib -->
+            <div class="prayer-item" id="prayer-Maghrib" data-prayer="Maghrib">
+              <div class="prayer-glow-border"></div>
+              <div class="prayer-badge-indicator" id="badge-Maghrib">NEXT</div>
+              <div class="prayer-icon-wrapper maghrib-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 18a5 5 0 0 0-10 0"></path>
+                  <line x1="12" y1="9" x2="12" y2="2"></line>
+                  <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                  <line x1="1" y1="18" x2="3" y2="18"></line>
+                  <line x1="21" y1="18" x2="23" y2="18"></line>
+                  <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                  <line x1="23" y1="22" x2="1" y2="22"></line>
+                  <polyline points="8 6 12 10 16 6"></polyline>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <span class="prayer-name" data-en="Maghrib" data-ar="المغرب">Maghrib</span>
+                <span class="prayer-arabic-sub">المغرب</span>
+              </div>
+              <div class="prayer-time-wrap">
+                <span class="prayer-time" id="time-Maghrib">17:45</span>
+                <span class="prayer-time-ampm" id="ampm-Maghrib">PM</span>
+              </div>
+            </div>
+
+            <!-- Isha -->
+            <div class="prayer-item" id="prayer-Isha" data-prayer="Isha">
+              <div class="prayer-glow-border"></div>
+              <div class="prayer-badge-indicator" id="badge-Isha">NEXT</div>
+              <div class="prayer-icon-wrapper isha-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" transform="translate(4, -2) scale(0.3)"></polygon>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <span class="prayer-name" data-en="Isha" data-ar="العشاء">Isha</span>
+                <span class="prayer-arabic-sub">العشاء</span>
+              </div>
+              <div class="prayer-time-wrap">
+                <span class="prayer-time" id="time-Isha">19:15</span>
+                <span class="prayer-time-ampm" id="ampm-Isha">PM</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Extra details footer inside glass card -->
+          <div class="card-footer">
+            <div class="footer-stat">
+              <span class="stat-label" id="statNextLabel">Next Adhan:</span>
+              <span class="stat-value highlight-cyan" id="statNextValue">--</span>
+            </div>
+            <div class="footer-stat">
+              <span class="stat-label" id="statRemainingLabel">Time Remaining:</span>
+              <span class="stat-value highlight-emerald" id="statRemainingValue">--</span>
+            </div>
+            <div class="footer-stat">
+              <span class="stat-label" id="statQiblaLabel">Qibla Direction:</span>
+              <span class="stat-value" id="statQiblaValue">248° WSW</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+      <p class="footer-text">
+        <span id="footerBrand">Youssef's Clock</span> &copy; 2026 • 
+        <span id="footerDesc">Powered by Aladhan API &amp; Astronomical Algorithms</span>
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Location Selector Modal -->
+  <div class="modal-backdrop hidden" id="locationModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="glass-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <svg class="icon-svg modal-title-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <h3 id="modalTitle">Select Location</h3>
+        </div>
+        <button class="modal-close-btn" id="closeLocationModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Geolocation Auto-detect Button -->
+        <button class="geo-detect-btn" id="useGpsBtn">
+          <span class="btn-spinner hidden" id="gpsSpinner"></span>
+          <svg class="icon-svg" id="gpsIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="22" y1="12" x2="18" y2="12"></line>
+            <line x1="6" y1="12" x2="2" y2="12"></line>
+            <line x1="12" y1="6" x2="12" y2="2"></line>
+            <line x1="12" y1="22" x2="12" y2="18"></line>
+          </svg>
+          <span id="gpsBtnText">Detect My Exact Location (GPS)</span>
+        </button>
+
+        <div class="modal-divider">
+          <span id="dividerOr">OR SEARCH / CHOOSE CITY</span>
+        </div>
+
+        <!-- Search Input -->
+        <div class="search-input-wrapper">
+          <svg class="icon-svg search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="citySearchInput" placeholder="Search city (e.g., Doha, Cairo, Dubai, London...)" autocomplete="off" />
+          <button class="search-clear-btn hidden" id="searchClearBtn" aria-label="Clear search">&times;</button>
+        </div>
+
+        <!-- Predefined Major Cities List -->
+        <div class="cities-container">
+          <h4 class="cities-group-title" id="quickPickTitle">Popular Cities</h4>
+          <div class="cities-grid" id="citiesList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Method Selector inside modal -->
+        <div class="method-selector-section">
+          <label for="methodSelect" id="calcMethodLabel">Calculation Method:</label>
+          <select id="methodSelect" class="custom-select">
+            <option value="4" selected>Umm Al-Qura University, Makkah</option>
+            <option value="3">Muslim World League (MWL)</option>
+            <option value="5">Egyptian General Authority of Survey</option>
+            <option value="2">Islamic Society of North America (ISNA)</option>
+            <option value="1">University of Islamic Sciences, Karachi</option>
+            <option value="8">Gulf Region / Qatar</option>
+            <option value="12">Union Des Organisations Islamiques De France</option>
+            <option value="13">Diyanet İşleri Başkanlığı, Turkey</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Qibla Direction Modal -->
+  <div class="modal-backdrop hidden" id="qiblaModal" role="dialog" aria-modal="true" aria-labelledby="qiblaModalTitle">
+    <div class="glass-modal-card qibla-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <svg class="icon-svg modal-title-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+          <h3 id="qiblaModalTitle">Qibla Compass Direction</h3>
+        </div>
+        <button class="modal-close-btn" id="closeQiblaModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body compass-modal-body">
+        <div class="compass-dial-wrap">
+          <div class="compass-outer-ring">
+            <span class="cardinal n">N</span>
+            <span class="cardinal e">E</span>
+            <span class="cardinal s">S</span>
+            <span class="cardinal w">W</span>
+            <div class="compass-pointer" id="compassPointer">
+              <div class="pointer-needle-kaaba">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#00e5ff">
+                  <path d="M12 2L2 22l10-4 10 4z"></path>
+                </svg>
+                <span class="kaaba-icon-label">🕋</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="qibla-readout">
+          <span class="qibla-angle-big" id="qiblaAngleDisplay">248°</span>
+          <span class="qibla-desc" id="qiblaDescText">Direction towards Kaaba, Makkah</span>
+          <span class="qibla-city-sub" id="qiblaCitySub">from Doha, Qatar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-notification" id="appToast" role="alert" aria-live="assertive">
+    <div class="toast-content">
+      <span class="toast-icon">✨</span>
+      <span class="toast-message" id="toastMessage">Notification</span>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
