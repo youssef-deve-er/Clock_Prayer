@@ -29,6 +29,7 @@
 - 🔊 **Synthesized Web Audio Chimes**: Gentle harmonic chime tone synthesized on-the-fly using the Web Audio API when prayer time arrives (no external audio files required).
 - 🌍 **Full Bilingual Localization (EN / AR)**: Instant one-click language switching between English and Arabic with complete RTL (Right-to-Left) layout support.
 - 📱 **100% Responsive Design**: Perfectly optimized for ultra-wide desktops, laptops, tablets, and smartphones.
+- 🖥️ **One-Screen Layout**: Clock card, prayer schedule and credits are sized with viewport-height fluid `clamp()` values so the whole app fits a single screen (no vertical scrolling) from `1280x720` laptops down to `390x844` phones. Short, wide windows switch to a side-by-side clock + schedule layout, so the clock also works as a fullscreen backdrop.
 
 ---
 
@@ -64,7 +65,7 @@
 ## 🛠️ Tech Stack & Structure
 
 - **HTML5**: Semantic tags, accessible ARIA attributes, SVG vector icons.
-- **CSS3**: CSS Custom Properties (Variables), CSS Grid, Flexbox, layered radial mesh gradients, Glassmorphism (`backdrop-filter`), reduced-motion support, full RTL styling.
+- **CSS3**: CSS Custom Properties (Variables), CSS Grid, Flexbox, layered radial mesh gradients, Glassmorphism (`backdrop-filter`), reduced-motion support, full RTL styling, fluid `clamp()` sizing based on `svh`/`cqw` for the one-screen layout.
 - **JavaScript (ES6+)**: Modular Object-Oriented architecture, Web Audio API, Geolocation API, Intl API, LocalStorage persistence.
 - **Typography**: `Manrope` for rounded geometric clock digits and UI, and `Cairo` for Arabic, via Google Fonts with system-font fallbacks.
 
@@ -136,7 +137,8 @@ Prayer API responses and dates are fixed for deterministic UI tests; the suite d
 7. **تنبيه صوتي لطيف**: نغمات إشعار متناسقة تم توليدها برمجياً عبر Web Audio API دون الحاجة إلى ملفات صوتية خارجية.
 8. **دعم اللغتين العربية والإنجليزية**: واجهة ثنائية اللغة مع دعم اتجاه النص من اليمين إلى اليسار (RTL)، مع بقاء أرقام الساعة والتاريخ بترتيب صحيح من اليسار إلى اليمين.
 9. **هوية بصرية هادئة**: أزرق سماوي `#1ba4f7` يسار البطاقة، وليلكي `#c084fc` أعلى الوسط، وأسود ليلي `#050812` يمينها، مع أرقام بيضاء وشريط سيان بعرض `90px` وعنوان متباعد الحروف.
-10. **سهولة الاستخدام والاختبار**: تركيز مرئي للوحة المفاتيح، نوافذ تدعم التنقل بمفتاح Tab والإغلاق بمفتاح Escape، واحترام تفضيل تقليل الحركة. لتشغيل اختبارات الواجهة اتبع قسم Regression Tests أعلاه.
+10. **تخطيط بملء شاشة واحدة**: تُقاس البطاقة وجدول الصلاة بمسافات مرنة تعتمد على ارتفاع الشاشة (`clamp()` مع `svh`) فتظهر الساعة والمواقيت كلها في شاشة واحدة دون تمرير عمودي، من شاشات `1280x720` وحتى هواتف `390x844`. وفي النوافذ القصيرة والعريضة (مثل استخدام الساعة كخلفية) يتحوّل الجدول إلى عرض جانبي بجانب الساعة.
+11. **سهولة الاستخدام والاختبار**: تركيز مرئي للوحة المفاتيح، نوافذ تدعم التنقل بمفتاح Tab والإغلاق بمفتاح Escape، واحترام تفضيل تقليل الحركة. لتشغيل اختبارات الواجهة اتبع قسم Regression Tests أعلاه.
 
 ---
 

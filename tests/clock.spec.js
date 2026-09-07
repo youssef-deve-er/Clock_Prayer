@@ -250,6 +250,47 @@ test('desktop, tablet and narrow-phone layouts fit in English and Arabic', async
   }
 });
 
+// Every size the app is expected to be shown at as a single screen: laptops,
+// common desktop windows, tablets and portrait phones.
+const oneScreenSizes = [
+  [1920, 1080], [1536, 864], [1366, 768], [1280, 800], [1280, 720],
+  [1024, 768], [850, 1000], [768, 1024], [412, 915], [390, 844], [375, 812]
+];
+
+test('the clock, prayer schedule and footer fit one screen without scrolling', async ({ page }) => {
+  await openApp(page);
+  for (const [width, height] of oneScreenSizes) {
+    await page.setViewportSize({ width, height });
+    for (const language of ['english', 'arabic']) {
+      for (const format of ['24h', '12h']) {
+        const label = `${width}x${height} ${language} ${format}`;
+        const layout = await page.evaluate(() => {
+          const bottom = selector => Math.ceil(document.querySelector(selector).getBoundingClientRect().bottom);
+          const tiles = [...document.querySelectorAll('.prayer-item')];
+          return {
+            scrollHeight: document.documentElement.scrollHeight,
+            clientHeight: document.documentElement.clientHeight,
+            clockBottom: bottom('#clockDisplay'),
+            titleBottom: bottom('.brand-title'),
+            tileBottom: Math.max(...tiles.map(tile => Math.ceil(tile.getBoundingClientRect().bottom))),
+            footerBottom: bottom('.app-footer')
+          };
+        });
+        // The day, date, clock, light bar and title, then the whole schedule and
+        // the credits line, must all end inside the viewport.
+        expect(layout.scrollHeight, `${label} scrolls vertically`).toBeLessThanOrEqual(layout.clientHeight + 1);
+        expect(layout.clockBottom, `${label} cuts the clock`).toBeLessThanOrEqual(layout.clientHeight + 1);
+        expect(layout.titleBottom, `${label} cuts the clock card`).toBeLessThanOrEqual(layout.clientHeight + 1);
+        expect(layout.tileBottom, `${label} cuts the prayer schedule`).toBeLessThanOrEqual(layout.clientHeight + 1);
+        expect(layout.footerBottom, `${label} cuts the footer`).toBeLessThanOrEqual(layout.clientHeight + 1);
+        await page.locator('#formatToggleBtn').click();
+      }
+      await page.locator('#langToggleBtn').click();
+    }
+    await expectNoOverflow(page);
+  }
+});
+
 test('reduced motion removes decorative animation without stopping the clock', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await openApp(page);
