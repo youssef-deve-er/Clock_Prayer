@@ -1,0 +1,13 @@
+{
+  "name": "youssefs-clock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A static digital clock and bilingual prayer schedule with an atmospheric mesh theme.",
+  "scripts": {
+    "check": "node --check app.js",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

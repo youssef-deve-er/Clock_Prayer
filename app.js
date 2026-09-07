@@ -86,6 +86,18 @@ const POPULAR_CITIES = [
 const I18N = {
   en: {
     langName: 'العربية',
+    controlLabels: {
+      locationBtn: 'Change location',
+      formatToggleBtn: 'Toggle 12H / 24H format',
+      soundToggleBtn: 'Toggle prayer alert chime',
+      qiblaBtn: 'Qibla direction compass',
+      langToggleBtn: 'Switch to Arabic',
+      refreshBtn: 'Refresh prayer times',
+      closeLocationModalBtn: 'Close location dialog',
+      closeQiblaModalBtn: 'Close Qibla dialog',
+      searchClearBtn: 'Clear search'
+    },
+    searchLabel: 'Search city',
     brandSubtitle: 'PRECISION TIME & PRAYER SCHEDULE',
     nextPrayerBadge: 'NEXT PRAYER',
     prayerTimesTitle: "Today's Prayer Schedule",
@@ -121,6 +133,18 @@ const I18N = {
   },
   ar: {
     langName: 'English',
+    controlLabels: {
+      locationBtn: 'تغيير الموقع',
+      formatToggleBtn: 'التبديل بين نظامي 12 و24 ساعة',
+      soundToggleBtn: 'تبديل التنبيه الصوتي للصلاة',
+      qiblaBtn: 'بوصلة اتجاه القبلة',
+      langToggleBtn: 'التبديل إلى الإنجليزية',
+      refreshBtn: 'تحديث مواقيت الصلاة',
+      closeLocationModalBtn: 'إغلاق نافذة الموقع',
+      closeQiblaModalBtn: 'إغلاق نافذة القبلة',
+      searchClearBtn: 'مسح البحث'
+    },
+    searchLabel: 'ابحث عن مدينة',
     brandSubtitle: 'ساعة رقمية فائقة الدقة وجدول مواقيت الصلاة',
     nextPrayerBadge: 'الصلاة القادمة',
     prayerTimesTitle: 'مواقيت الصلاة لهذا اليوم',
@@ -476,10 +500,7 @@ class YoussefsClockApp {
 
       // Toast
       appToast: document.getElementById('appToast'),
-      toastMessage: document.getElementById('toastMessage'),
-
-      // Stars
-      starsContainer: document.getElementById('starsContainer')
+      toastMessage: document.getElementById('toastMessage')
     };
   }
 
@@ -487,7 +508,6 @@ class YoussefsClockApp {
   // Initialization
   // ==========================================
   init() {
-    this.renderStars();
     this.bindEvents();
     this.renderPopularCitiesList();
     this.applyLanguage(this.state.language);
@@ -524,28 +544,6 @@ class YoussefsClockApp {
   }
 
   // ==========================================
-  // Background Aesthetic (Stars)
-  // ==========================================
-  renderStars() {
-    if (!this.dom.starsContainer) return;
-    const count = 35;
-    const fragment = document.createDocumentFragment();
-    for (let i = 0; i < count; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      const size = Math.random() * 2.5 + 1;
-      star.style.width = `${size}px`;
-      star.style.height = `${size}px`;
-      star.style.top = `${Math.random() * 100}%`;
-      star.style.left = `${Math.random() * 100}%`;
-      star.style.animationDelay = `${Math.random() * 5}s`;
-      star.style.animationDuration = `${Math.random() * 3 + 2}s`;
-      fragment.appendChild(star);
-    }
-    this.dom.starsContainer.appendChild(fragment);
-  }
-
-  // ==========================================
   // Live Clock & Date Engine
   // ==========================================
   startClock() {
@@ -565,14 +563,18 @@ class YoussefsClockApp {
 
     if (this.dom.currentDateFormatted.textContent !== formattedDate) {
       this.dom.currentDateFormatted.textContent = formattedDate;
+      this.dom.currentDateFormatted.dateTime = formattedDate;
     }
 
     // Day of the week
     const dayIndex = now.getDay();
     const dayName = I18N[this.state.language].days[dayIndex];
-    if (this.dom.currentDayName.textContent !== dayName) {
-      this.dom.currentDayName.textContent = dayName;
+    // Short, tracked English weekday; Arabic stays joined and fully readable.
+    const dayLabel = this.state.language === 'en' ? dayName.slice(0, 3).toUpperCase() : dayName;
+    if (this.dom.currentDayName.textContent !== dayLabel) {
+      this.dom.currentDayName.textContent = dayLabel;
     }
+    this.dom.currentDayName.title = dayName;
 
     // Time digits (HH:MM:SS)
     let hours = now.getHours();
@@ -953,6 +955,12 @@ class YoussefsClockApp {
 
     // Button label
     this.dom.langText.textContent = strings.langName;
+    this.dom.langText.lang = lang === 'ar' ? 'en' : 'ar';
+    Object.entries(strings.controlLabels).forEach(([key, label]) => {
+      this.dom[key].title = label;
+      this.dom[key].setAttribute('aria-label', label);
+    });
+    this.dom.citySearchInput.setAttribute('aria-label', strings.searchLabel);
 
     // UI Texts
     this.dom.brandSubtitle.textContent = strings.brandSubtitle;
@@ -985,7 +993,8 @@ class YoussefsClockApp {
       }
     });
 
-    // Re-render cities with current language
+    // Update the day immediately, without waiting for the next clock tick.
+    this.updateClock();
     this.renderPopularCitiesList();
     this.fetchPrayerTimes();
   }
@@ -1003,6 +1012,7 @@ class YoussefsClockApp {
 
   updateFormatBadge() {
     this.dom.formatBadge.textContent = this.state.is24Hour ? '24H' : '12H';
+    this.dom.formatToggleBtn.setAttribute('aria-pressed', String(!this.state.is24Hour));
   }
 
   toggleSound() {
@@ -1018,6 +1028,7 @@ class YoussefsClockApp {
   }
 
   updateSoundIcon() {
+    this.dom.soundToggleBtn.setAttribute('aria-pressed', String(this.state.soundEnabled));
     if (this.state.soundEnabled) {
       this.dom.soundIconOn.classList.remove('hidden');
       this.dom.soundIconOff.classList.add('hidden');
@@ -1088,14 +1099,17 @@ class YoussefsClockApp {
   // ==========================================
   openModal(modal) {
     if (!modal) return;
+    this.modalReturnFocus = document.activeElement;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    modal.querySelector('button, input, select')?.focus();
   }
 
   closeModal(modal) {
-    if (!modal) return;
+    if (!modal || modal.classList.contains('hidden')) return;
     modal.classList.add('hidden');
     document.body.style.overflow = '';
+    this.modalReturnFocus?.focus();
   }
 
   showToast(message) {
@@ -1185,11 +1199,26 @@ class YoussefsClockApp {
       }
     });
 
-    // Escape Key to close modals
+    // Keep keyboard focus inside the open dialog and restore it on close.
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeModal(this.dom.locationModal);
         this.closeModal(this.dom.qiblaModal);
+      }
+      if (e.key === 'Tab') {
+        const modal = document.querySelector('.modal-backdrop:not(.hidden)');
+        if (!modal) return;
+        const focusable = [...modal.querySelectorAll('button, input, select')]
+          .filter((element) => !element.disabled && element.getClientRects().length > 0);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
       }
     });
   }
